@@ -22,7 +22,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] );
 /**
  A GPUImageOutput that provides frames from either camera
 */
-@interface GPUImageVideoCamera : GPUImageOutput <AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate>
+@interface GPUImageVideoCamera : GPUImageOutput <AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate, AVCaptureMetadataOutputObjectsDelegate>
 {
     NSUInteger numberOfFramesCaptured;
     CGFloat totalFrameTimeDuringCapture;

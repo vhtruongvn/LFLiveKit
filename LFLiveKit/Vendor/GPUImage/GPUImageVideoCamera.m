@@ -26,6 +26,11 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
 	AVCaptureAudioDataOutput *audioOutput;
     NSDate *startingCaptureTime;
 	
+    
+    AVCaptureMetadataOutput *metadataOutput;
+    AVCaptureVideoPreviewLayer *videoPreviewLayer;
+    
+    
     dispatch_queue_t cameraProcessingQueue, audioProcessingQueue;
     
     GLProgram *yuvConversionProgram;
@@ -117,6 +122,29 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
 	{
 		[_captureSession addInput:videoInput];
 	}
+    
+    
+    // QR Code
+    metadataOutput = [[AVCaptureMetadataOutput alloc] init];
+    if ([_captureSession canAddOutput:metadataOutput]) {
+        [_captureSession addOutput:metadataOutput];
+        
+        [metadataOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
+        [metadataOutput setMetadataObjectTypes:@[AVMetadataObjectTypeUPCECode,
+                                                 AVMetadataObjectTypeCode39Code,
+                                                 AVMetadataObjectTypeCode39Mod43Code,
+                                                 AVMetadataObjectTypeCode93Code,
+                                                 AVMetadataObjectTypeCode128Code,
+                                                 AVMetadataObjectTypeEAN8Code,
+                                                 AVMetadataObjectTypeEAN13Code,
+                                                 AVMetadataObjectTypeAztecCode,
+                                                 AVMetadataObjectTypePDF417Code,
+                                                 AVMetadataObjectTypeQRCode
+                                                 ]];
+    }
+    
+    videoPreviewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:_captureSession];
+    
 	
 	// Add the video frame output	
 	videoOutput = [[AVCaptureVideoDataOutput alloc] init];
@@ -241,6 +269,10 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
     [self stopCameraCapture];
     [videoOutput setSampleBufferDelegate:nil queue:dispatch_get_main_queue()];
     [audioOutput setSampleBufferDelegate:nil queue:dispatch_get_main_queue()];
+    
+    
+    [metadataOutput setMetadataObjectsDelegate:nil queue:dispatch_get_main_queue()];
+    
     
     [self removeInputsAndOutputs];
     
@@ -864,6 +896,50 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
     numberOfFramesCaptured = 0;
     totalFrameTimeDuringCapture = 0.0;
 }
+
+
+#pragma mark -
+#pragma mark AVCaptureMetadataOutputObjectsDelegate
+
+- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputMetadataObjects:(NSArray *)metadataObjects fromConnection:(AVCaptureConnection *)connection
+{
+    // Check if the metadataObjects array is not nil and it contains at least one object.
+    if (metadataObjects == nil || metadataObjects.count == 0) {
+        NSLog(@"No QR/barcode is detected");
+        return;
+    }
+    
+    CGRect highlightViewRect = CGRectZero;
+    AVMetadataMachineReadableCodeObject *barCodeObject;
+    NSString *detectionString = nil;
+    
+    NSArray *barCodeTypes = @[AVMetadataObjectTypeUPCECode,
+                              AVMetadataObjectTypeCode39Code,
+                              AVMetadataObjectTypeCode39Mod43Code,
+                              AVMetadataObjectTypeCode93Code,
+                              AVMetadataObjectTypeCode128Code,
+                              AVMetadataObjectTypeEAN8Code,
+                              AVMetadataObjectTypeEAN13Code,
+                              AVMetadataObjectTypeAztecCode,
+                              AVMetadataObjectTypePDF417Code,
+                              AVMetadataObjectTypeQRCode
+                              ];
+    
+    for (AVMetadataObject *metadata in metadataObjects) {
+        for (NSString *type in barCodeTypes) {
+            if ([metadata.type isEqualToString:type]) {
+                barCodeObject = (AVMetadataMachineReadableCodeObject *)[videoPreviewLayer transformedMetadataObjectForMetadataObject:(AVMetadataMachineReadableCodeObject *)metadata];
+                highlightViewRect = barCodeObject.bounds;
+                detectionString = [(AVMetadataMachineReadableCodeObject *)metadata stringValue];
+                
+                NSLog(@"%@", detectionString);
+                
+                break;
+            }
+        }
+    }
+}
+
 
 #pragma mark -
 #pragma mark AVCaptureVideoDataOutputSampleBufferDelegate
