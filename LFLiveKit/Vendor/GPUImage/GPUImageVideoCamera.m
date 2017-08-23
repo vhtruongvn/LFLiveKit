@@ -905,7 +905,6 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
 {
     // Check if the metadataObjects array is not nil and it contains at least one object.
     if (metadataObjects == nil || metadataObjects.count == 0) {
-        NSLog(@"No QR/barcode is detected");
         return;
     }
     
@@ -932,7 +931,10 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
                 highlightViewRect = barCodeObject.bounds;
                 detectionString = [(AVMetadataMachineReadableCodeObject *)metadata stringValue];
                 
-                NSLog(@"%@", detectionString);
+                NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:detectionString, @"code", nil];
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"AVMetadataObjectDetected"
+                                                                    object:nil
+                                                                  userInfo:userInfo];
                 
                 break;
             }
