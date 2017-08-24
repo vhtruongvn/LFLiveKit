@@ -691,7 +691,7 @@ int PILI_RTMP_SetupURL(PILI_RTMP *r, const char *url, RTMPError *error) {
                 if (domain->av_len == 0) {
                     domain = &r->Link.hostname;
                 }
-                if (r->Link.port = 0) {
+                if (r->Link.port == 0) {
                     r->Link.port = 1935;
                 }
                 len = domain->av_len + r->Link.app.av_len + sizeof("rtmpte://:65535/");
@@ -737,7 +737,7 @@ static int add_addr_info(PILI_RTMP *r, struct addrinfo *hints, struct addrinfo *
         hostname = host->av_val;
     }
 
-    struct addrinfo *cur_ai;
+    //struct addrinfo *cur_ai;
     char portstr[10];
     snprintf(portstr, sizeof(portstr), "%d", port);
     int addrret = getaddrinfo(hostname, portstr, hints, ai);
@@ -3995,10 +3995,10 @@ static int
     return ret;
 }
 
-static const char flvHeader[] = {'F', 'L', 'V', 0x01,
-                                 0x00, /* 0x04 == audio, 0x01 == video */
-                                 0x00, 0x00, 0x00, 0x09,
-                                 0x00, 0x00, 0x00, 0x00};
+//static const char flvHeader[] = {'F', 'L', 'V', 0x01,
+//                                 0x00, /* 0x04 == audio, 0x01 == video */
+//                                 0x00, 0x00, 0x00, 0x09,
+//                                 0x00, 0x00, 0x00, 0x00};
 
 #define HEADERBUF (128 * 1024)
 int PILI_RTMP_Read(PILI_RTMP *r, char *buf, int size) {

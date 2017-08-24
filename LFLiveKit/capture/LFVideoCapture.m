@@ -131,7 +131,7 @@
 }
 
 - (void)setTorch:(BOOL)torch {
-    BOOL ret;
+    BOOL ret = false;
     if (!self.videoCamera.captureSession) return;
     AVCaptureSession *session = (AVCaptureSession *)self.videoCamera.captureSession;
     [session beginConfiguration];
